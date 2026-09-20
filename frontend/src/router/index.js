@@ -6,6 +6,7 @@ import RunCreateView from '../views/RunCreateView.vue'
 import RunDetailView from '../views/RunDetailView.vue'
 import EventTimelineView from '../views/EventTimelineView.vue'
 import LineageView from '../views/LineageView.vue'
+import DatasetLookupView from '../views/DatasetLookupView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,6 +18,7 @@ const router = createRouter({
     { path: '/runs/:id', name: 'run-detail', component: RunDetailView },
     { path: '/runs/:id/events', name: 'run-events', component: EventTimelineView },
     { path: '/runs/:id/lineage', name: 'run-lineage', component: LineageView },
+    { path: '/datasets/lookup', name: 'dataset-lookup', component: DatasetLookupView },
   ],
 })
 

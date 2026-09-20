@@ -33,7 +33,7 @@ class RunProjection(Base):
     name: Mapped[str] = mapped_column(String(256), nullable=False)
     status: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    dataset_content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    dataset_content_sha256: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
     code_commit_sha: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

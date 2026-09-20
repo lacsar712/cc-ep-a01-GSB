@@ -77,4 +77,9 @@ export async function getLineage(id) {
   return data
 }
 
+export async function lookupDatasetRuns(sha) {
+  const { data } = await api.get('/datasets/lookup', { params: { sha } })
+  return data
+}
+
 export default api

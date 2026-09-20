@@ -11,6 +11,7 @@ from app.cqrs import (
     abort_run,
     attach_artifact,
     complete_run,
+    find_runs_by_dataset_sha,
     list_events,
     record_metric,
     start_run,
@@ -21,6 +22,7 @@ from app.schemas import (
     AbortRunCommand,
     AttachArtifactCommand,
     CompleteRunCommand,
+    DatasetLookupHit,
     EventOut,
     LineageOut,
     LoginRequest,
@@ -68,6 +70,32 @@ def get_runs(
     if status:
         stmt = stmt.where(RunProjection.status == status)
     return list(db.scalars(stmt).all())
+
+
+@router.get("/datasets/lookup", response_model=list[DatasetLookupHit])
+def lookup_runs_by_dataset(
+    sha: str = Query(description="数据集内容指纹（64 位 sha256 精确值，或 >=8 位十六进制前缀）"),
+    db: Session = Depends(get_db),
+    _user: dict = Depends(get_current_user),
+):
+    """数据集指纹反查：研究员与审计员均可用，仅按指纹精确/前缀匹配，不做通用搜索。"""
+    try:
+        runs = find_runs_by_dataset_sha(db, sha)
+    except DomainError as exc:
+        _handle_domain(exc)
+    return [
+        DatasetLookupHit(
+            run_id=run.id,
+            project=run.project,
+            name=run.name,
+            status=run.status,
+            code_commit_sha=run.code_commit_sha,
+            dataset_content_sha256=run.dataset_content_sha256,
+            started_at=run.started_at,
+            started_by=run.started_by,
+        )
+        for run in runs
+    ]
 
 
 @router.post("/runs", response_model=RunOut, status_code=201)

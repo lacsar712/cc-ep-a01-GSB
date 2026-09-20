@@ -1,4 +1,4 @@
-"""Seed demo runs: 2 completed + 1 running."""
+"""Seed demo runs: 3 completed + 1 running（其中两条复用同一数据集指纹）."""
 
 from __future__ import annotations
 
@@ -145,7 +145,38 @@ def seed() -> None:
             expected_version=run3.version,
         )
 
-        print("Seed completed: 2 completed runs + 1 running run")
+        # Completed run 4：与 run1 复用同一数据集指纹（演示指纹反查一对多）
+        run4 = start_run(
+            db,
+            actor="researcher",
+            project="protein-folding",
+            name="AlphaFold baseline v2 (recalibrated)",
+            dataset_content_sha256=sha256_hex("casp14-subset-v1"),
+            code_commit_sha="b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5",
+            description="同一数据集上的重校准基线",
+            run_id=UUID("44444444-4444-4444-4444-444444444444"),
+        )
+        run4 = record_metric(
+            db,
+            run_id=run4.id,
+            actor="researcher",
+            name="tm_score",
+            value=0.83,
+            step=1,
+            expected_version=run4.version,
+        )
+        complete_run(
+            db,
+            run_id=run4.id,
+            actor="researcher",
+            result_summary="重校准完成，TM-score=0.83",
+            expected_version=run4.version,
+        )
+
+        print("Seed completed: 3 completed runs + 1 running run")
+        print("已知数据集指纹（可用于指纹反查验收）:")
+        for label in ("casp14-subset-v1", "kinase-panel-2024q3", "casp14-msa-aug-v2"):
+            print(f"  {label}: {sha256_hex(label)}")
     finally:
         db.close()
 

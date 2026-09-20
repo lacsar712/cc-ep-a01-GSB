@@ -98,3 +98,16 @@ class LineageOut(BaseModel):
     finished_at: datetime | None
     started_by: str
     version: int
+
+
+class DatasetLookupHit(BaseModel):
+    """数据集指纹反查命中的一条 Run（列表项，字段与列表页对齐）。"""
+
+    run_id: UUID
+    project: str
+    name: str
+    status: str
+    code_commit_sha: str
+    dataset_content_sha256: str
+    started_at: datetime
+    started_by: str

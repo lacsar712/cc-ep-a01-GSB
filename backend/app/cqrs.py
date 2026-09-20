@@ -317,3 +317,35 @@ def rebuild_projection_from_events(db: Session, run_id: UUID) -> RunProjection |
     for event in events:
         proj = _apply_event_to_projection(proj, event)
     return proj
+
+
+# --- 查询侧：数据集指纹反查 ---
+
+# 前缀查询的最小长度：过短的前缀会退化成全表扫描（变成通用搜索），这里不允许。
+MIN_DATASET_SHA_PREFIX = 8
+DATASET_SHA_HEX_LENGTH = 64
+
+
+def normalize_dataset_sha_query(raw: str) -> str:
+    """校验并规范化数据集指纹查询串（完整 64 位或 >=8 位十六进制前缀）。"""
+    sha = (raw or "").strip().lower()
+    if not sha:
+        raise DomainError("请输入数据集内容指纹（sha256）")
+    if len(sha) < MIN_DATASET_SHA_PREFIX:
+        raise DomainError(f"指纹前缀至少 {MIN_DATASET_SHA_PREFIX} 位十六进制字符")
+    if len(sha) > DATASET_SHA_HEX_LENGTH:
+        raise DomainError("数据集指纹最长 64 位十六进制字符")
+    if any(c not in "0123456789abcdef" for c in sha):
+        raise DomainError("数据集指纹仅允许十六进制字符（0-9a-f）")
+    return sha
+
+
+def find_runs_by_dataset_sha(db: Session, sha_query: str) -> list[RunProjection]:
+    """按 dataset_content_sha256 精确（64 位）或前缀（>=8 位）反查关联 Run。"""
+    sha = normalize_dataset_sha_query(sha_query)
+    stmt = (
+        select(RunProjection)
+        .where(RunProjection.dataset_content_sha256.startswith(sha))
+        .order_by(RunProjection.started_at.desc())
+    )
+    return list(db.scalars(stmt).all())

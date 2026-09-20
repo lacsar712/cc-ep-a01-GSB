@@ -12,6 +12,7 @@ from app.cqrs import (
     abort_run,
     attach_artifact,
     complete_run,
+    find_runs_by_dataset_sha256,
     list_events,
     rebuild_projection_from_events,
     record_metric,
@@ -218,3 +219,64 @@ def test_cannot_command_before_start(db):
             step=0,
             expected_version=0,
         )
+
+
+def test_fingerprint_lookup_exact(db):
+    fp = sha("lookup-dataset-exact")
+    run = start_run(
+        db,
+        actor="researcher",
+        project="p-lookup",
+        name="exact",
+        dataset_content_sha256=fp,
+        code_commit_sha="abc1234",
+        description=None,
+    )
+
+    hits = find_runs_by_dataset_sha256(db, fp)
+    assert [r.id for r in hits] == [run.id]
+    # uppercase input is normalized to lowercase
+    assert [r.id for r in find_runs_by_dataset_sha256(db, fp.upper())] == [run.id]
+
+
+def test_fingerprint_lookup_prefix(db):
+    fp_a = sha("lookup-dataset-prefix-a")
+    fp_b = sha("lookup-dataset-prefix-b")
+    start_run(
+        db,
+        actor="researcher",
+        project="p-lookup",
+        name="a",
+        dataset_content_sha256=fp_a,
+        code_commit_sha="abc1234",
+        description=None,
+    )
+    start_run(
+        db,
+        actor="researcher",
+        project="p-lookup",
+        name="b",
+        dataset_content_sha256=fp_b,
+        code_commit_sha="abc1234",
+        description=None,
+    )
+
+    # distinct 12-char prefixes resolve a single run
+    assert [r.name for r in find_runs_by_dataset_sha256(db, fp_a[:12])] == ["a"]
+    assert [r.name for r in find_runs_by_dataset_sha256(db, fp_b[:12])] == ["b"]
+
+
+def test_fingerprint_lookup_no_hit(db):
+    start_run(
+        db,
+        actor="researcher",
+        project="p-lookup",
+        name="seeded",
+        dataset_content_sha256=sha("lookup-dataset-present"),
+        code_commit_sha="abc1234",
+        description=None,
+    )
+    # 64-char fingerprint of a dataset never used -> no results
+    assert find_runs_by_dataset_sha256(db, sha("lookup-dataset-absent")) == []
+    # short prefix belonging to no dataset -> no results
+    assert find_runs_by_dataset_sha256(db, "deadbee" * 2 + "ab") == []

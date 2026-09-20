@@ -54,6 +54,23 @@ pytest -q
 | researcher | lab123456 | 可发命令（Start/Metric/Artifact/Complete/Abort） |
 | auditor | audit123456 | 只读事件与投影 |
 
+## 数据集指纹反查
+
+按 `dataset_content_sha256` 反查关联 Run（非通用搜索，只认数据集指纹）：
+
+- 入口：顶部导航「指纹反查」（研究员与审计员均可见），打开即有查询区
+- 输入 64 位完整指纹 → 精确匹配；输入 7–63 位十六进制前缀 → 前缀匹配
+- 结果含 project、name、status、code_commit、启动时间，可点「详情」或「血缘」进入原有页面
+- API：`GET /api/dataset-fingerprints/lookup?fingerprint=<hex>`（需登录，两角色均可）
+
+seed 数据的已知数据集指纹（`sha256`）：
+
+| Run | 数据集明文 | dataset_content_sha256 |
+|-----|-----------|------------------------|
+| protein-folding / AlphaFold baseline v1 | `casp14-subset-v1` | `4b7b1197129c6cb0f3b7be0745b76dc4722385a0aad6095df366fbb7cf3fae79` |
+| drug-screen / Kinase panel screen #42 | `kinase-panel-2024q3` | `e2994da08f24ccdecf905c13b51dbc7c4124aa3afa8cb15916c59fbb34e4e98e` |
+| protein-folding / MSA augmentation | `casp14-msa-aug-v2` | `8a884be77aa0bfd889ac7827076e8c1e8ae52f39378ab538fe92842973d2ffcb` |
+
 ## Verification
 
 1. 打开 http://localhost:3173 ，使用 `researcher` / `lab123456` 登录
@@ -64,6 +81,7 @@ pytest -q
 6. 打开「血缘」确认 code_commit、dataset 指纹、artifacts、metrics
 7. 健康检查：`GET http://localhost:8173/api/health`
 8. 用 `auditor` 登录：可看列表/事件/血缘，命令按钮不可用
+9. **指纹反查**：打开「指纹反查」，粘贴上表任一完整指纹（或前 12 位，如 `4b7b1197129c`），列出对应 Run，再点「详情」进入原详情页
 
 终态或 `expected_version` 不匹配时，API 返回 **409**。
 

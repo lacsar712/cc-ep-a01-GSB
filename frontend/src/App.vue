@@ -6,6 +6,7 @@
           <div class="brand">科学实验溯源工作台</div>
           <div class="nav-links">
             <router-link to="/runs">Run 列表</router-link>
+            <router-link to="/fingerprints">指纹反查</router-link>
             <router-link v-if="auth.role === 'researcher'" to="/runs/new">新建 Run</router-link>
             <span class="muted">{{ auth.username }}（{{ roleLabel }}）</span>
             <n-button size="small" quaternary @click="logout">退出</n-button>

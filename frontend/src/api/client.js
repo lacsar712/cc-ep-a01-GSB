@@ -37,6 +37,13 @@ export async function listRuns(params = {}) {
   return data
 }
 
+export async function lookupByDatasetFingerprint(fingerprint) {
+  const { data } = await api.get('/dataset-fingerprints/lookup', {
+    params: { fingerprint },
+  })
+  return data
+}
+
 export async function getRun(id) {
   const { data } = await api.get(`/runs/${id}`)
   return data

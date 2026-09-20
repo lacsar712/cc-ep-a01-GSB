@@ -40,12 +40,13 @@ def seed() -> None:
             return
 
         # Completed run 1
+        ds_run1 = sha256_hex("casp14-subset-v1")
         run1 = start_run(
             db,
             actor="researcher",
             project="protein-folding",
             name="AlphaFold baseline v1",
-            dataset_content_sha256=sha256_hex("casp14-subset-v1"),
+            dataset_content_sha256=ds_run1,
             code_commit_sha="a1b2c3d4e5f6789012345678abcdef0123456789"[:40],
             description="基线折叠实验，记录 TM-score",
             run_id=UUID("11111111-1111-1111-1111-111111111111"),
@@ -87,12 +88,13 @@ def seed() -> None:
         )
 
         # Completed run 2
+        ds_run2 = sha256_hex("kinase-panel-2024q3")
         run2 = start_run(
             db,
             actor="researcher",
             project="drug-screen",
             name="Kinase panel screen #42",
-            dataset_content_sha256=sha256_hex("kinase-panel-2024q3"),
+            dataset_content_sha256=ds_run2,
             code_commit_sha="f0e1d2c3b4a5968778695a4b3c2d1e0f98765432",
             description="激酶抑制剂筛选批次",
             run_id=UUID("22222222-2222-2222-2222-222222222222"),
@@ -125,12 +127,13 @@ def seed() -> None:
         )
 
         # Running run 3
+        ds_run3 = sha256_hex("casp14-msa-aug-v2")
         run3 = start_run(
             db,
             actor="researcher",
             project="protein-folding",
             name="Fine-tune with MSA augmentation",
-            dataset_content_sha256=sha256_hex("casp14-msa-aug-v2"),
+            dataset_content_sha256=ds_run3,
             code_commit_sha="9abc8def7a6543210fedcba9876543210abcdef0",
             description="进行中的增强 MSA 微调实验",
             run_id=UUID("33333333-3333-3333-3333-333333333333"),
@@ -146,6 +149,10 @@ def seed() -> None:
         )
 
         print("Seed completed: 2 completed runs + 1 running run")
+        print("Dataset fingerprints (for 指纹反查 / fingerprint reverse lookup):")
+        print(f"  protein-folding / AlphaFold baseline v1 : {ds_run1}")
+        print(f"  drug-screen / Kinase panel screen #42    : {ds_run2}")
+        print(f"  protein-folding / MSA augmentation       : {ds_run3}")
     finally:
         db.close()
 

@@ -6,6 +6,7 @@ import RunCreateView from '../views/RunCreateView.vue'
 import RunDetailView from '../views/RunDetailView.vue'
 import EventTimelineView from '../views/EventTimelineView.vue'
 import LineageView from '../views/LineageView.vue'
+import FingerprintLookupView from '../views/FingerprintLookupView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -13,6 +14,7 @@ const router = createRouter({
     { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
     { path: '/', redirect: '/runs' },
     { path: '/runs', name: 'runs', component: RunListView },
+    { path: '/fingerprints', name: 'fingerprint-lookup', component: FingerprintLookupView },
     { path: '/runs/new', name: 'run-create', component: RunCreateView, meta: { researcher: true } },
     { path: '/runs/:id', name: 'run-detail', component: RunDetailView },
     { path: '/runs/:id/events', name: 'run-events', component: EventTimelineView },

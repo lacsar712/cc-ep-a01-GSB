@@ -309,6 +309,27 @@ def list_events(db: Session, run_id: UUID) -> list[EventStore]:
     return list(db.scalars(stmt).all())
 
 
+FINGERPRINT_MIN_PREFIX_LEN = 7
+
+
+def find_runs_by_dataset_sha256(db: Session, fingerprint: str) -> list[RunProjection]:
+    """Read-side reverse lookup: runs whose dataset fingerprint equals (64
+    chars) or starts with (>= 7 hex chars) the given value.
+
+    This is a narrow provenance lookup keyed on dataset_content_sha256, not a
+    free-text search: callers must validate that ``fingerprint`` is lowercase
+    hex of length 7..64 before calling.
+    """
+    fp = fingerprint.strip().lower()
+    stmt = select(RunProjection)
+    if len(fp) == 64:
+        stmt = stmt.where(RunProjection.dataset_content_sha256 == fp)
+    else:
+        stmt = stmt.where(RunProjection.dataset_content_sha256.like(fp + "%"))
+    stmt = stmt.order_by(RunProjection.started_at.desc())
+    return list(db.scalars(stmt).all())
+
+
 def rebuild_projection_from_events(db: Session, run_id: UUID) -> RunProjection | None:
     events = list_events(db, run_id)
     if not events:

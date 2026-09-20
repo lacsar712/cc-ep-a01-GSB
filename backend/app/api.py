@@ -11,6 +11,7 @@ from app.cqrs import (
     abort_run,
     attach_artifact,
     complete_run,
+    find_runs_by_dataset_sha256,
     list_events,
     record_metric,
     start_run,
@@ -89,6 +90,23 @@ def create_run(
         )
     except DomainError as exc:
         _handle_domain(exc)
+
+
+@router.get("/dataset-fingerprints/lookup", response_model=list[RunOut])
+def lookup_by_dataset_fingerprint(
+    fingerprint: str = Query(
+        ...,
+        min_length=7,
+        max_length=64,
+        description="dataset_content_sha256：64 位精确匹配，7-63 位按前缀匹配（仅十六进制）",
+    ),
+    db: Session = Depends(get_db),
+    _user: dict = Depends(get_current_user),
+):
+    fp = fingerprint.strip().lower()
+    if not fp or any(c not in "0123456789abcdef" for c in fp):
+        raise HTTPException(status_code=422, detail="指纹须为十六进制字符串（sha256）")
+    return find_runs_by_dataset_sha256(db, fp)
 
 
 @router.get("/runs/{run_id}", response_model=RunOut)
